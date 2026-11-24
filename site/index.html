@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maquete Smart City</title>
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<header class="topo">
+  <div class="largura topo-linha">
+    <a class="marca" href="#inicio">
+      <span class="marca-sinal" aria-hidden="true"></span>
+      Maquete <em>Smart City</em>
+    </a>
+    <nav>
+      <a href="#inicio">O projeto</a>
+      <a href="#funcionamento">Como funciona</a>
+      <a href="#dados">Dados ao vivo</a>
+    </nav>
+    <span class="conexao" id="conexao">conectando…</span>
+  </div>
+</header>
+
+<main>
+  <!-- ===== Seção inicial ===== -->
+  <section id="inicio" class="inicio largura">
+    <p class="sobretitulo">Internet das Coisas aplicada à cidade</p>
+    <h1>Uma cidade que percebe<br>o que acontece nela.</h1>
+    <p class="lead">
+      Esta maquete simula três serviços de uma cidade inteligente: a iluminação pública,
+      uma vaga de estacionamento e uma estação de clima. Sensores medem o ambiente,
+      um Arduino toma decisões simples na hora (como acender o poste quando escurece)
+      e os dados chegam a este site, onde são analisados e mostrados em tempo real.
+    </p>
+
+    <div class="servicos">
+      <article>
+        <span class="pino">LDR · pino A0</span>
+        <h3>Iluminação pública</h3>
+        <p>Um sensor de luz mede a claridade. Quando a leitura cai abaixo de 50, o Arduino
+           acende o poste sozinho, sem ninguém apertar botão.</p>
+      </article>
+      <article>
+        <span class="pino">Sensor de presença · pino 3</span>
+        <h3>Estacionamento</h3>
+        <p>O sensor detecta se há um carro na vaga. O motorista poderia consultar
+           de longe se ela está livre antes de sair de casa.</p>
+      </article>
+      <article>
+        <span class="pino">DHT22 · pino 2</span>
+        <h3>Clima</h3>
+        <p>Temperatura e umidade do ar, úteis para alertas de calor, frio
+           ou ar seco para a população.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="funcionamento" class="funcionamento">
+    <div class="largura">
+      <h2>Como os dados chegam aqui</h2>
+      <ol class="fluxo">
+        <li>
+          <span class="passo">01</span>
+          <h4>Sensores</h4>
+          <p>LDR, sensor de presença e DHT22 fazem as medições na maquete.</p>
+        </li>
+        <li>
+          <span class="passo">02</span>
+          <h4>Arduino Uno</h4>
+          <p>Lê os sensores, liga o poste se estiver escuro e, a cada 2 segundos,
+             envia uma linha em <code>JSON</code> pelo cabo USB.</p>
+        </li>
+        <li>
+          <span class="passo">03</span>
+          <h4>Servidor Python</h4>
+          <p>Lê a porta serial com <code>pyserial</code>, converte o JSON, guarda o
+             histórico e calcula médias e estatísticas. A API é feita com <code>FastAPI</code>.</p>
+        </li>
+        <li>
+          <span class="passo">04</span>
+          <h4>Este site</h4>
+          <p>Pede os dados à API a cada segundo e atualiza os valores abaixo.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===== Seção de dados ===== -->
+  <section id="dados" class="dados largura">
+    <div class="dados-cabecalho">
+      <h2>Dados ao vivo</h2>
+      <p class="mudo" id="atualizado">aguardando a primeira leitura…</p>
+    </div>
+    <p class="faixa-teste" id="faixa-teste" hidden>SIMULAÇÃO: o servidor está em modo de teste, estes valores não vêm do Arduino.</p>
+
+    <div class="leituras">
+      <div class="leitura">
+        <span class="rotulo">Poste</span>
+        <strong class="estado" id="poste">--</strong>
+        <span class="detalhe">LDR: <b id="ldr">--</b> <span class="mudo">(liga abaixo de 50)</span></span>
+      </div>
+      <div class="leitura">
+        <span class="rotulo">Vaga 01</span>
+        <strong class="estado" id="vaga">--</strong>
+        <span class="detalhe" id="vaga-detalhe">&nbsp;</span>
+      </div>
+      <div class="leitura">
+        <span class="rotulo">Temperatura</span>
+        <strong class="numero"><span id="temp">--</span><small>°C</small></strong>
+        <svg class="linha" id="graf-temp" viewBox="0 0 200 40" preserveAspectRatio="none" aria-label="Temperatura nos últimos 2 minutos"></svg>
+      </div>
+      <div class="leitura">
+        <span class="rotulo">Umidade</span>
+        <strong class="numero"><span id="umid">--</span><small>%</small></strong>
+        <svg class="linha" id="graf-umid" viewBox="0 0 200 40" preserveAspectRatio="none" aria-label="Umidade nos últimos 2 minutos"></svg>
+      </div>
+    </div>
+
+    <div class="analise">
+      <div>
+        <h3>Análise da sessão</h3>
+        <p class="mudo" id="sessao">--</p>
+        <table>
+          <tbody>
+            <tr><th>Vaga ocupada</th><td id="a-vaga">--</td></tr>
+            <tr><th>Carros que chegaram</th><td id="a-chegadas">--</td></tr>
+            <tr><th>Poste ligado</th><td id="a-poste">--</td></tr>
+            <tr><th>Temperatura (mín · média · máx)</th><td id="a-temp">--</td></tr>
+            <tr><th>Umidade (mín · média · máx)</th><td id="a-umid">--</td></tr>
+            <tr><th>Luminosidade LDR (mín · média · máx)</th><td id="a-ldr">--</td></tr>
+          </tbody>
+        </table>
+        <ul class="avisos" id="avisos"></ul>
+      </div>
+      <div>
+        <h3>O que o Arduino enviou</h3>
+        <p class="mudo">Última linha recebida pela porta serial, antes de virar dado no site:</p>
+        <pre id="bruto">--</pre>
+        <p class="mudo pequeno">Também dá para consultar cada recurso separado:
+          <a href="/iluminacao">/iluminacao</a> ·
+          <a href="/estacionamento">/estacionamento</a> ·
+          <a href="/clima">/clima</a> ·
+          <a href="/docs">/docs</a></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <div class="largura rodape-linha">
+    <div>
+      <strong>Maquete Smart City</strong>
+      <p>Trabalho acadêmico sobre cidades inteligentes e Internet das Coisas.</p>
+    </div>
+    <div>
+      <span class="rotulo">Feito com</span>
+      <p>Arduino Uno (C++) · LDR, sensor de presença, DHT22 · Python · pyserial · FastAPI · HTML, CSS e JavaScript</p>
+    </div>
+  </div>
+</footer>
+
+<script src="painel.js"></script>
+</body>
+</html>

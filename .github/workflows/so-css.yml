@@ -1,0 +1,26 @@
+# Barra Pull Requests de colaboradores que mexam em algo além do CSS do site.
+# PRs abertos pelo dono do repositório não passam por essa verificação.
+name: Só CSS
+
+on:
+  pull_request:
+
+jobs:
+  so-css:
+    if: github.event.pull_request.user.login != github.repository_owner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Conferir arquivos alterados
+        run: |
+          alterados=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          echo "Arquivos alterados:"; echo "$alterados"
+          fora=$(echo "$alterados" | grep -v -x 'site/estilo.css' || true)
+          if [ -n "$fora" ]; then
+            echo "::error::Este PR só pode alterar site/estilo.css. Também mudou:"
+            echo "$fora"
+            exit 1
+          fi
+          echo "OK: só o CSS foi alterado."
